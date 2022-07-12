@@ -23,6 +23,13 @@
      </style>
  </head>
  <body>
-    <button type="button">Lancer les tests</button>
+    <button type="button" id="runTests">Lancer les tests</button>
+    <script>
+        window.runTests.addEventListener("click",
+        _ => {
+            fetch("/trigger", { method: 'POST' } )
+            .then(res => console.log(res))
+        });
+    </script>
  </body>
 </html>

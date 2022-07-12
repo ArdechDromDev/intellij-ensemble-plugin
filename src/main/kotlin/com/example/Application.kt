@@ -8,7 +8,7 @@ import io.ktor.server.netty.*
 
 
 class MySession: Session {
-    override fun isConnected() = true
+    override fun isConnected() = false
 }
 
 fun main() {
