@@ -1,0 +1,15 @@
+= Ensemble Programming Server
+
+This project aims at solving the problem of attendance saying
+"please run the tests" again and again during ensemble programming sessions.
+
+To do so, the design will be the following:
+
+1. at session start, somebody connects to the webapp and create a session.
+ It will then display a QR-Code for the attendee to scan
+
+2. each attendee scan the QR-Code, provides his/her name and is given access
+ to a button that will allow to run tests at anytime
+
+3. At the same time, the owner of the code connects his/her Intellij to
+ the server
