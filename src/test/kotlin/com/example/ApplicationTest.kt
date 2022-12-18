@@ -7,8 +7,18 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import org.apache.pulsar.client.api.Message
+import org.apache.pulsar.client.api.PulsarClient
+import org.apache.pulsar.client.api.SubscriptionType
+import org.junit.Assert
+import org.testcontainers.containers.PulsarContainer
+import org.testcontainers.utility.DockerImageName
+import java.util.concurrent.TimeUnit
+import kotlin.test.BeforeTest
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+
 
 data class StubSession(val connected: Boolean = true) : Session {
     override fun isConnected() = connected
@@ -33,15 +43,7 @@ class ApplicationTest {
         }
         client.get("/static/index.html").apply {
             assertEquals(HttpStatusCode.OK, status)
-            assertEquals(
-                """<html>
- <head>
- </head>
- <body>
-   <h1>Hello Ktor!</h1>
- </body>
-</html>""", bodyAsText()
-            )
+            assertContains(bodyAsText(), """<body>""")
         }
     }
 
@@ -97,4 +99,62 @@ class ApplicationTest {
         }
     }
 
+}
+
+class ApplicationIntegrationTest {
+
+    var pulsar: PulsarContainer? = null
+
+    @BeforeTest
+    fun before() {
+        val pulsar = PulsarContainer(DockerImageName.parse("apachepulsar/pulsar:latest"))
+        pulsar.start()
+
+
+        this.pulsar = pulsar
+    }
+
+    class PulsarTestRunner(pulsarClient: PulsarClient) : TestRunner {
+
+        val producer = pulsarClient
+            .newProducer()
+            .topic("commands")
+            .sendTimeout(10, TimeUnit.SECONDS)
+            .blockIfQueueFull(true)
+            .create();
+
+        override fun runTests() {
+            producer.sendAsync("run-the-tests".toByteArray())
+        }
+
+        override fun hasBeenRun(): Boolean = TODO()
+
+    }
+
+    @Test
+    fun testTriggerShouldProduceACommand() = testApplication {
+        val pulsarClient = PulsarClient.builder()
+            .serviceUrl(pulsar?.pulsarBrokerUrl)
+            .build()
+
+        val consumer =
+            pulsarClient
+                .newConsumer()
+                .subscriptionName("test-sub")
+                .topic("commands")
+                .subscriptionType(SubscriptionType.Exclusive)
+                .subscribe()
+
+        val pulsarTestRunner: TestRunner = PulsarTestRunner(pulsarClient)
+
+        application {
+            configureRouting(StubSession(), runner = pulsarTestRunner)
+        }
+
+        client.post("/trigger").apply {
+            assertEquals(HttpStatusCode.Created, status)
+            val message: Message<ByteArray>? = consumer.receive(1, TimeUnit.SECONDS)
+            Assert.assertEquals(message?.let { String(it.data) },  "run-the-tests")
+        }
+    }
 }

@@ -6,6 +6,7 @@ import com.example.plugins.configureSerialization
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
+//TODO: runner qui appel intellij
 
 class MySession: Session {
     override fun isConnected() = false

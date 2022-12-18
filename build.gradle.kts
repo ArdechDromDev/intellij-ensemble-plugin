@@ -33,4 +33,6 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("org.testcontainers:pulsar:1.17.3")
+    implementation("org.apache.pulsar:pulsar-client:2.10.1")
 }
