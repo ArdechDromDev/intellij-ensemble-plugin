@@ -147,6 +147,8 @@ class ApplicationIntegrationTest {
 
         val pulsarTestRunner: TestRunner = PulsarTestRunner(pulsarClient)
 
+
+
         application {
             configureRouting(StubSession(), runner = pulsarTestRunner)
         }
