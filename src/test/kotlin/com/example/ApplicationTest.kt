@@ -7,7 +7,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
-import org.apache.pulsar.client.api.Message
 import org.apache.pulsar.client.api.PulsarClient
 import org.junit.Assert
 import org.testcontainers.containers.PulsarContainer
@@ -125,8 +124,24 @@ class ApplicationIntegrationTest {
 
         client.post("/trigger").apply {
             assertEquals(HttpStatusCode.Created, status)
-            val message: Message<ByteArray>? = testCommandHandler.receive()
-            Assert.assertEquals(message?.let { String(it.data) },  "run-the-tests")
+            val message: RunTest? = testCommandHandler.receive()
+            Assert.assertEquals(message, RunTest)
         }
+    }
+
+    @Test
+    fun testShouldTimeOutOnReceive() = testApplication {
+        val pulsarClient = PulsarClient.builder()
+            .serviceUrl(pulsar?.pulsarBrokerUrl)
+            .build()
+
+        val pulsarTestRunner: TestRunner = PulsarTestRunner(pulsarClient)
+        val testCommandHandler = TestCommandHandler(pulsarClient)
+        application {
+            configureRouting(StubSession(), runner = pulsarTestRunner)
+        }
+
+        val message: RunTest? = testCommandHandler.receive()
+        Assert.assertEquals(message, null)
     }
 }

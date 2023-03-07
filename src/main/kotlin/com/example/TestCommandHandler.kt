@@ -1,9 +1,10 @@
 package com.example
 
-import org.apache.pulsar.client.api.Message
 import org.apache.pulsar.client.api.PulsarClient
 import org.apache.pulsar.client.api.SubscriptionType
 import java.util.concurrent.TimeUnit
+
+object RunTest
 
 class TestCommandHandler(pulsarClient: PulsarClient) {
     val consumer =
@@ -13,7 +14,7 @@ class TestCommandHandler(pulsarClient: PulsarClient) {
             .topic("commands")
             .subscriptionType(SubscriptionType.Exclusive)
             .subscribe()
-    fun receive(): Message<ByteArray>? {
-        return consumer.receive(1, TimeUnit.SECONDS)
+    fun receive(): RunTest? {
+        return consumer.receive(1, TimeUnit.SECONDS)?.let { RunTest }
     }
 }
