@@ -9,7 +9,7 @@ import io.ktor.server.routing.*
 
 interface TestRunner {
     fun runTests()
-    fun hasBeenRun(): Boolean
+
 }
 
 interface Session {

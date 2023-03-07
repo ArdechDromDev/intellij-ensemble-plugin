@@ -50,7 +50,7 @@ class ApplicationTest {
     @Test
     fun testAttendeeTriggerTestsWhenNoPluginConnected() {
         testApplication {
-            val runner = testRunner()
+            val runner = TestRunnerStub()
             startServer(StubSession(connected = false), runner)
             //TODO: change to restful semantic
             client.post("/trigger").apply {
@@ -69,7 +69,7 @@ class ApplicationTest {
 
     @Test
     fun testAttendeeTriggerTests() = testApplication {
-        startServer(StubSession(connected = true), testRunner())
+        startServer(StubSession(connected = true), TestRunnerStub())
         //TODO: change to restful semantic
         client.post("/trigger").apply {
             assertEquals(HttpStatusCode.Created, status)
@@ -77,8 +77,8 @@ class ApplicationTest {
     }
 
     @Test
-    fun testTriggeringTestsShouldRunThem() = testApplication {
-        val runner = testRunner()
+    fun testTriggeringTestsShouldRunT0hem() = testApplication {
+        val runner = TestRunnerStub()
         application {
             configureRouting(StubSession(connected = true), runner)
         }
@@ -87,18 +87,15 @@ class ApplicationTest {
             assertEquals(true, runner.hasBeenRun())
         }
     }
+}
 
-    private fun testRunner(): TestRunner {
-        return object : TestRunner {
-            var hasBeenRun = false
-            override fun runTests() {
-                hasBeenRun = true
-            }
-
-            override fun hasBeenRun() = hasBeenRun
-        }
+class TestRunnerStub : TestRunner {
+    var hasBeenRun = false
+    override fun runTests() {
+        hasBeenRun = true
     }
 
+    fun hasBeenRun() = hasBeenRun
 }
 
 class ApplicationIntegrationTest {
@@ -126,9 +123,6 @@ class ApplicationIntegrationTest {
         override fun runTests() {
             producer.sendAsync("run-the-tests".toByteArray())
         }
-
-        override fun hasBeenRun(): Boolean = TODO()
-
     }
 
     @Test
