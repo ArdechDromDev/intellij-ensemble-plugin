@@ -1,35 +1,37 @@
 <html>
- <head>
-     <title>Ensemble Programming Test Trigger</title>
-     <style>
-         button {
+<head>
+    <title>Ensemble Programming Test Trigger</title>
+    <style>
+        button {
             display: block;
             margin: 10% auto;
             border: transparent;
-            background: #97CE68;
-            font-size: 40px;
+            background: linear-gradient(17deg, rgb(48 108 29) 0%, rgba(188,230,1,1) 100%);
             padding: 5%;
             border-radius: 50%;
-            height: 400px;
             width: 60%;
-            box-shadow: 0px 34px #5A7D3D, 0px 50px 20px #0000003b;
+            box-shadow: 0 34px #5A7D3D, 0 50px 20px #0000003b;
             transition: .2s all;
-         }
+            color: white;
+            text-shadow: 2px 2px 4px #0000007a;
+            aspect-ratio: 1.5 / 1;
+            font-size: 5vw;
+        }
 
-         button:active {
+        button:active {
             box-shadow: 0px 0px #5A7D3D;
             transform: translateY(34px);
-         }
-     </style>
- </head>
- <body>
-    <button type="button" id="runTests">Lancer les tests</button>
-    <script>
-        window.runTests.addEventListener("click",
+        }
+    </style>
+</head>
+<body>
+<button type="button" id="runTests">Lancer les tests</button>
+<script>
+    window.runTests.addEventListener("click",
         _ => {
-            fetch("/trigger", { method: 'POST' } )
-            .then(res => console.log(res))
+            fetch("/trigger", {method: 'POST'})
+                .then(res => console.log(res))
         });
-    </script>
- </body>
+</script>
+</body>
 </html>
