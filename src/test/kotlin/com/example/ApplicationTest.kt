@@ -9,11 +9,9 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.apache.pulsar.client.api.Message
 import org.apache.pulsar.client.api.PulsarClient
-import org.apache.pulsar.client.api.SubscriptionType
 import org.junit.Assert
 import org.testcontainers.containers.PulsarContainer
 import org.testcontainers.utility.DockerImageName
-import java.util.concurrent.TimeUnit
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -111,43 +109,23 @@ class ApplicationIntegrationTest {
         this.pulsar = pulsar
     }
 
-    class PulsarTestRunner(pulsarClient: PulsarClient) : TestRunner {
-
-        val producer = pulsarClient
-            .newProducer()
-            .topic("commands")
-            .sendTimeout(10, TimeUnit.SECONDS)
-            .blockIfQueueFull(true)
-            .create();
-
-        override fun runTests() {
-            producer.sendAsync("run-the-tests".toByteArray())
-        }
-    }
-
     @Test
     fun testTriggerShouldProduceACommand() = testApplication {
         val pulsarClient = PulsarClient.builder()
             .serviceUrl(pulsar?.pulsarBrokerUrl)
             .build()
 
-        val consumer =
-            pulsarClient
-                .newConsumer()
-                .subscriptionName("test-sub")
-                .topic("commands")
-                .subscriptionType(SubscriptionType.Exclusive)
-                .subscribe()
+
 
         val pulsarTestRunner: TestRunner = PulsarTestRunner(pulsarClient)
-
+        val testCommandHandler = TestCommandHandler(pulsarClient)
         application {
             configureRouting(StubSession(), runner = pulsarTestRunner)
         }
 
         client.post("/trigger").apply {
             assertEquals(HttpStatusCode.Created, status)
-            val message: Message<ByteArray>? = consumer.receive(1, TimeUnit.SECONDS)
+            val message: Message<ByteArray>? = testCommandHandler.receive()
             Assert.assertEquals(message?.let { String(it.data) },  "run-the-tests")
         }
     }
